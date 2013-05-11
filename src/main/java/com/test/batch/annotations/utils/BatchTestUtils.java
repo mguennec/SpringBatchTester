@@ -1,25 +1,21 @@
 package com.test.batch.annotations.utils;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.test.batch.annotations.BatchParameters;
+import com.test.batch.annotations.BatchTest;
+import com.test.batch.annotations.ContextConfig;
+import com.test.batch.annotations.DatabaseInit;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.IsNot;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.StringUtils;
 
-import com.test.batch.annotations.BatchParameters;
-import com.test.batch.annotations.BatchTest;
-import com.test.batch.annotations.ContextConfig;
-import com.test.batch.annotations.DatabaseInit;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility class using annotations to launch batch tests.
@@ -31,25 +27,6 @@ public final class BatchTestUtils {
 
 	private BatchTestUtils() {
 		// Ne fait rien
-	}
-
-	/**
-	 * Looks for potential test methods.
-	 * 
-	 * @param clazz
-	 *            class to look up
-	 * @return the methods
-	 */
-	public static List<Method> getBatchTestMethods(final Class<?> clazz) {
-		final List<Method> methods = new ArrayList<>();
-
-		for (final Method method : clazz.getMethods()) {
-			if (method.isAnnotationPresent(BatchTest.class) && !method.isAnnotationPresent(Ignore.class)) {
-				methods.add(method);
-			}
-		}
-
-		return methods;
 	}
 
 	/**
@@ -123,18 +100,6 @@ public final class BatchTestUtils {
 	 */
 	public static boolean isBatchTest(final Method method) {
 		return method.isAnnotationPresent(BatchTest.class);
-	}
-
-	/**
-	 * Gets an array containing the main context path.
-	 * 
-	 * @param clazz
-	 *            a class
-	 * @return the array
-	 */
-	public static String[] getContext(final Class<?> clazz) {
-		final ContextConfig config = clazz.getAnnotation(ContextConfig.class);
-		return config == null ? new String[0] : config.values();
 	}
 
 	/**

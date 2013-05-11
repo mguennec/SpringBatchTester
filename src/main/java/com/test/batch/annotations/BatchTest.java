@@ -1,11 +1,11 @@
 package com.test.batch.annotations;
 
+import org.springframework.batch.core.BatchStatus;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.springframework.batch.core.BatchStatus;
 
 /**
  * Annotation to declare a batch test method.

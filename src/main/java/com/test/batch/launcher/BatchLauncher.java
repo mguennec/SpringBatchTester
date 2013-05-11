@@ -1,22 +1,10 @@
 package com.test.batch.launcher;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-
-import org.apache.commons.lang3.ArrayUtils;
+import com.test.batch.annotations.BatchTest;
+import com.test.batch.annotations.utils.BatchTestUtils;
 import org.apache.log4j.Logger;
-import org.hamcrest.core.IsEqual;
-import org.hamcrest.core.IsNot;
 import org.junit.Assert;
-import org.springframework.batch.core.BatchStatus;
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -29,8 +17,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.StringUtils;
 
-import com.test.batch.annotations.BatchTest;
-import com.test.batch.annotations.utils.BatchTestUtils;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 /**
  * Batch launcher.
@@ -52,28 +42,6 @@ public class BatchLauncher {
 	public BatchLauncher() {
 		// Ne fait rien
 	}
-
-	/**
-	 * Launch a test described by a method.
-	 * 
-	 * @param method
-	 *            method
-	 * @throws Exception
-	 *             if something goes wrong or an assertion fails
-	 */
-	public void run(final Method method) throws Exception {
-		if (!BatchTestUtils.isBatchTest(method)) {
-			return;
-		}
-        final ConfigurableApplicationContext ctxt = BatchTestUtils.getApplicationContext(method);
-
-        try {
-			run(method, ctxt);
-		} finally {
-			ctxt.close();
-		}
-	}
-
 
     /**
 	 * Launch a batch test.
@@ -112,8 +80,6 @@ public class BatchLauncher {
 	 * @param job
 	 *            job
 	 * @return return code
-	 * @throws Exception
-	 *             if something goes wrong or an assertion fails
 	 */
 	private String run(final Method method, final ConfigurableApplicationContext ctxt, final Job job) {
 		String exitCode;
@@ -202,8 +168,7 @@ public class BatchLauncher {
 		for (final Entry<String, JobParameter> entry : params.entrySet()) {
 			parameters.addParameter(entry.getKey(), entry.getValue());
 		}
-		final JobParameters jobParams = parameters.toJobParameters();
-		return jobParams;
+        return parameters.toJobParameters();
 	}
 
 	/**

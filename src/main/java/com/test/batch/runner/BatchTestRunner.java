@@ -1,23 +1,18 @@
 package com.test.batch.runner;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.test.batch.annotations.BatchTest;
+import com.test.batch.context.TestContext;
+import com.test.batch.statements.CloseContextStatement;
+import com.test.batch.statements.RunBatch;
 import org.junit.Test;
 import org.junit.internal.runners.statements.InvokeMethod;
-import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import com.test.batch.annotations.BatchTest;
-import com.test.batch.annotations.utils.BatchTestUtils;
-import com.test.batch.statements.CloseContextStatement;
-import com.test.batch.statements.RunBatch;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Runner to launch a batch test :
@@ -31,7 +26,7 @@ import com.test.batch.statements.RunBatch;
 public class BatchTestRunner extends BlockJUnit4ClassRunner {
 
 	/** Runner Spring context. */
-	private final ConfigurableApplicationContext ctxt;
+	private final TestContext ctxt;
 
 	/**
 	 * @param klass
@@ -40,35 +35,18 @@ public class BatchTestRunner extends BlockJUnit4ClassRunner {
 	 */
 	public BatchTestRunner(final Class<?> klass) throws InitializationError {
 		super(klass);
-		final String[] path = BatchTestUtils.getContext(klass);
-		if (path.length > 0) {
-			ctxt = new ClassPathXmlApplicationContext(path);
-		} else {
-			ctxt = null;
-		}
+		ctxt = new TestContext();
 	}
 
 	@Override
 	protected List<FrameworkMethod> computeTestMethods() {
-		final List<FrameworkMethod> methods = new ArrayList<FrameworkMethod>(getTestClass().getAnnotatedMethods(BatchTest.class));
+		final List<FrameworkMethod> methods = new ArrayList<>(getTestClass().getAnnotatedMethods(BatchTest.class));
 		methods.addAll(getTestClass().getAnnotatedMethods(Test.class));
 		return methods;
 	}
 
 	@Override
 	protected Statement methodInvoker(final FrameworkMethod method, final Object test) {
-		return new RunBatch(method, new InvokeMethod(method, test));
-	}
-
-	@Override
-	protected Object createTest() throws Exception {
-		final Object newInstance = super.createTest();
-		ctxt.getAutowireCapableBeanFactory().autowireBeanProperties(newInstance, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
-		return newInstance;
-	}
-
-	@Override
-	protected Statement classBlock(final RunNotifier notifier) {
-		return new CloseContextStatement(ctxt, super.classBlock(notifier));
+		return new CloseContextStatement(method, ctxt, new RunBatch(method, ctxt, test, new InvokeMethod(method, test)));
 	}
 }
