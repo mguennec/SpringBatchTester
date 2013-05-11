@@ -6,8 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsNot;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.springframework.batch.core.BatchStatus;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.StringUtils;
 
 import com.test.batch.annotations.BatchParameters;
@@ -35,7 +41,7 @@ public final class BatchTestUtils {
 	 * @return the methods
 	 */
 	public static List<Method> getBatchTestMethods(final Class<?> clazz) {
-		final List<Method> methods = new ArrayList<Method>();
+		final List<Method> methods = new ArrayList<>();
 
 		for (final Method method : clazz.getMethods()) {
 			if (method.isAnnotationPresent(BatchTest.class) && !method.isAnnotationPresent(Ignore.class)) {
@@ -54,7 +60,7 @@ public final class BatchTestUtils {
 	 * @return the parameters
 	 */
 	public static Map<String, String> getJobParameters(final Method method) {
-		final Map<String, String> params = new HashMap<String, String>();
+		final Map<String, String> params = new HashMap<>();
 		if (method.isAnnotationPresent(BatchParameters.class)) {
 			final BatchParameters batchParameters = method.getAnnotation(BatchParameters.class);
 			if (batchParameters.keys().length == 0 || batchParameters.keys().length != batchParameters.values().length) {
@@ -96,6 +102,18 @@ public final class BatchTestUtils {
 		}
 		return !isBatchTest(method) || config == null ? new String[0] : config.values();
 	}
+
+    public static ConfigurableApplicationContext getApplicationContext(Method method) {
+        // Spring Context
+        String[] path = BatchTestUtils.getContext(method);
+        Assert.assertThat("Context must be specified.", path.length, IsNot.not(IsEqual.equalTo(0)));
+
+        // Database initialization context
+        path = ArrayUtils.addAll(path, BatchTestUtils.getInitDatabasePath(method));
+
+        // Context creation
+        return new ClassPathXmlApplicationContext(path);
+    }
 
 	/**
 	 * 

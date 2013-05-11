@@ -43,10 +43,10 @@ public class BatchLauncher {
 	/** Logger. */
 	private static final Logger LOGGER = Logger.getLogger(BatchLauncher.class);
 
-	/** Converts the job parameters. */
+    /** Converts the job parameters. */
 	private JobParametersConverter jobParametersConverter = new DefaultJobParametersConverter();
 
-	/** Maps exit code. */
+    /** Maps exit code. */
 	private ExitCodeMapper exitCodeMapper = new SimpleJvmExitCodeMapper();
 
 	public BatchLauncher() {
@@ -65,23 +65,17 @@ public class BatchLauncher {
 		if (!BatchTestUtils.isBatchTest(method)) {
 			return;
 		}
-		// Spring Context
-		String[] path = BatchTestUtils.getContext(method);
-		Assert.assertThat("Context must be specified.", path.length, IsNot.not(IsEqual.equalTo(0)));
+        final ConfigurableApplicationContext ctxt = BatchTestUtils.getApplicationContext(method);
 
-		// Database initialization context
-		path = ArrayUtils.addAll(path, BatchTestUtils.getInitDatabasePath(method));
-
-		// Context creation
-		final ConfigurableApplicationContext ctxt = new ClassPathXmlApplicationContext(path);
-		try {
+        try {
 			run(method, ctxt);
 		} finally {
 			ctxt.close();
 		}
 	}
 
-	/**
+
+    /**
 	 * Launch a batch test.
 	 * 
 	 * @param method
@@ -91,7 +85,7 @@ public class BatchLauncher {
 	 * @throws Exception
 	 *             if something goes wrong or an assertion fails
 	 */
-	private void run(final Method method, final ConfigurableApplicationContext ctxt) throws Exception {
+    public void run(final Method method, final ConfigurableApplicationContext ctxt) throws Exception {
 		// Gets the job in the Spring context
 		final String batchName = BatchTestUtils.getBatchName(method);
 		if (!StringUtils.hasLength(batchName)) {
@@ -261,4 +255,12 @@ public class BatchLauncher {
 		return job;
 	}
 
+
+    public void setJobParametersConverter(JobParametersConverter jobParametersConverter) {
+        this.jobParametersConverter = jobParametersConverter;
+    }
+
+    public void setExitCodeMapper(ExitCodeMapper exitCodeMapper) {
+        this.exitCodeMapper = exitCodeMapper;
+    }
 }
